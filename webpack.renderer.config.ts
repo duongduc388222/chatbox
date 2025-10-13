@@ -10,19 +10,7 @@ rules.push(
   },
   {
       test: /\.s[ca]ss$/,
-      use: [
-        { loader: 'style-loader' }, 
-        { loader: 'css-loader' }, 
-        { 
-          loader: 'sass-loader',
-          options: {
-            api: 'modern-compiler',
-            sassOptions: {
-              loadPaths: ['node_modules'],
-            }
-          }
-        }
-      ],
+      use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, 'sass-loader'],
   }
 );
 
