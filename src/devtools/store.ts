@@ -76,6 +76,13 @@ export async function readSessions(): Promise<Session[]> {
     if (sessions.length === 0) {
         return [createSession()]
     }
+    
+    // Always ensure "My First Chat" is at the beginning
+    const myFirstChat = defaults.sessions.find(s => s.id === 'my-first-chat-001')
+    if (myFirstChat && !sessions.find(s => s.id === 'my-first-chat-001')) {
+        sessions = [myFirstChat, ...sessions]
+    }
+    
     return sessions
 }
 
