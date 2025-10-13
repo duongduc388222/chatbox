@@ -65,6 +65,7 @@ function _Block(props: Props) {
     const { msg, setMsg } = props
     const [isHovering, setIsHovering] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
+    const contentRef = useRef<HTMLDivElement>(null)
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -75,6 +76,90 @@ function _Block(props: Props) {
         setAnchorEl(null);
     };
 
+    // Add copy buttons to code blocks
+    useEffect(() => {
+        if (!contentRef.current || isEditing) return;
+
+        const codeBlocks = contentRef.current.querySelectorAll('pre.hljs');
+        
+        codeBlocks.forEach((block) => {
+            // Check if copy button already exists
+            if (block.querySelector('.code-copy-btn')) return;
+
+            // Create wrapper for positioning
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            block.parentNode?.insertBefore(wrapper, block);
+            wrapper.appendChild(block);
+
+            // Create copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'code-copy-btn';
+            copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>`;
+            copyBtn.title = 'Copy code';
+            
+            // Style the button
+            Object.assign(copyBtn.style, {
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                padding: '6px 8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '4px',
+                color: '#fff',
+                cursor: 'pointer',
+                opacity: '0',
+                transition: 'opacity 0.2s, background 0.2s',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                zIndex: '10',
+            });
+
+            // Add hover effect
+            wrapper.addEventListener('mouseenter', () => {
+                copyBtn.style.opacity = '1';
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                copyBtn.style.opacity = '0';
+            });
+
+            // Copy functionality
+            copyBtn.addEventListener('click', async () => {
+                const code = block.querySelector('code');
+                if (!code) return;
+
+                try {
+                    await navigator.clipboard.writeText(code.textContent || '');
+                    
+                    // Visual feedback
+                    copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg><span>Copied!</span>`;
+                    copyBtn.style.background = 'rgba(34, 197, 94, 0.2)';
+                    copyBtn.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+
+                    setTimeout(() => {
+                        copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>`;
+                        copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                        copyBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy code:', err);
+                }
+            });
+
+            wrapper.appendChild(copyBtn);
+        });
+    }, [msg.content, isEditing]);
 
     const tips: string[] = []
     if (props.showWordCount) {
@@ -151,6 +236,7 @@ function _Block(props: Props) {
                                     />
                                 ) : (
                                     <Box
+                                        ref={contentRef}
                                         sx={{
                                             // bgcolor: "Background",
                                         }}
