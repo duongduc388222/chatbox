@@ -16,7 +16,7 @@ rules.push(
         { 
           loader: 'sass-loader',
           options: {
-            api: 'modern-compiler',
+            api: 'modern',
             sassOptions: {
               loadPaths: ['node_modules'],
             }
