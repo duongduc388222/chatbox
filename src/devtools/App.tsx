@@ -28,6 +28,9 @@ const { useEffect, useState } = React
 function Main() {
     const store = useStore()
 
+    // Drag and drop state
+    const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+
     // 是否展示设置窗口
     const [openSettingWindow, setOpenSettingWindow] = React.useState(false);
     useEffect(() => {
@@ -194,7 +197,9 @@ function Main() {
                         >
                             {
                                 store.chatSessions.map((session, ix) => (
-                                    <SessionItem selected={store.currentSession.id === session.id}
+                                    <SessionItem
+                                        key={session.id}
+                                        selected={store.currentSession.id === session.id}
                                         session={session}
                                         switchMe={() => {
                                             store.switchCurrentSession(session)
@@ -207,6 +212,23 @@ function Main() {
                                             store.createChatSession(newSession, ix)
                                         }}
                                         editMe={() => setConfigureChatConfig(session)}
+                                        onDragStart={(e) => {
+                                            setDraggedIndex(ix);
+                                            e.dataTransfer.effectAllowed = 'move';
+                                        }}
+                                        onDragEnd={() => {
+                                            setDraggedIndex(null);
+                                        }}
+                                        onDragOver={(e) => {
+                                            e.preventDefault();
+                                            e.dataTransfer.dropEffect = 'move';
+                                        }}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
+                                            if (draggedIndex !== null && draggedIndex !== ix) {
+                                                store.reorderSessions(draggedIndex, ix);
+                                            }
+                                        }}
                                     />
                                 ))
                             }
